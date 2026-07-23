@@ -615,6 +615,10 @@
       .trip-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <!-- ── Firebase SDK (compat) ── -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -874,6 +878,65 @@
 
 <script>
 // ═══════════════════════════════════════════════
+// Firebase 초기화
+// ═══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAMJEKaNLVunHRLDIFHWrACMTel_rvgHR4",
+  authDomain: "routej.firebaseapp.com",
+  projectId: "routej",
+  storageBucket: "routej.firebasestorage.app",
+  messagingSenderId: "693962969004",
+  appId: "1:693962969004:web:b0a539b0b25f8c4069b409",
+  measurementId: "G-1Q81YX555L"
+};
+firebase.initializeApp(firebaseConfig);
+const _auth = firebase.auth();
+const _firestore = firebase.firestore();
+let currentUser = null;
+
+// Firestore 헬퍼: 내 여행 컬렉션 참조
+function fsTripsRef() {
+  if (!currentUser) return null;
+  return _firestore.collection('users').doc(currentUser.uid).collection('trips');
+}
+
+// 클라우드에 여행 저장
+async function fsSaveTrip(trip) {
+  const ref = fsTripsRef();
+  if (!ref) return;
+  try { await ref.doc(trip.id).set(trip); } catch (e) { console.warn('☁️ Firestore 저장 실패', e); }
+}
+
+// 클라우드에서 여행 삭제
+async function fsDeleteTrip(id) {
+  const ref = fsTripsRef();
+  if (!ref) return;
+  try { await ref.doc(id).delete(); } catch (e) { console.warn('☁️ Firestore 삭제 실패', e); }
+}
+
+// 클라우드에서 전체 여행 불러오기
+async function fsGetAllTrips() {
+  const ref = fsTripsRef();
+  if (!ref) return null;
+  try {
+    const snap = await ref.get();
+    return snap.docs.map(d => d.data());
+  } catch (e) { console.warn('☁️ Firestore 불러오기 실패', e); return null; }
+}
+
+// Google 로그인
+async function googleSignIn() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try { await _auth.signInWithPopup(provider); }
+  catch (e) { if (e.code !== 'auth/popup-closed-by-user') console.warn('로그인 실패', e); }
+}
+
+// 로그아웃
+async function signOutUser() {
+  try { await _auth.signOut(); } catch (e) { console.warn('로그아웃 실패', e); }
+}
+
+// ═══════════════════════════════════════════════
 // IndexedDB
 // ═══════════════════════════════════════════════
 let _db = null;
@@ -898,7 +961,8 @@ function dbGetAll() {
     req.onerror = e => err(e.target.error);
   });
 }
-function dbPut(trip) {
+// IndexedDB에만 저장 (내부 용도)
+function dbPutLocal(trip) {
   return new Promise((ok, err) => {
     const tx = _db.transaction('trips','readwrite');
     tx.objectStore('trips').put(trip);
@@ -906,7 +970,13 @@ function dbPut(trip) {
     tx.onerror = e => err(e.target.error);
   });
 }
+// IndexedDB + Firestore에 저장
+function dbPut(trip) {
+  fsSaveTrip(trip); // ☁️ 클라우드 동기화 (로그인 시)
+  return dbPutLocal(trip);
+}
 function dbDelete(id) {
+  fsDeleteTrip(id); // ☁️ 클라우드 삭제 (로그인 시)
   return new Promise((ok, err) => {
     const tx = _db.transaction('trips','readwrite');
     tx.objectStore('trips').delete(id);
@@ -1193,10 +1263,18 @@ function renderTab(tab) {
 // ═══════════════════════════════════════════════
 function renderHeader() {
   const el = document.getElementById('header-right');
+  const loginBtn = currentUser
+    ? `<div style="display:flex;align-items:center;gap:8px;">
+        <img src="${currentUser.photoURL || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-soft);" onerror="this.style.display='none'" />
+        <span style="font-size:12px;color:var(--text-muted);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${currentUser.displayName || currentUser.email || ''}</span>
+        <button class="btn btn-secondary btn-sm" onclick="signOutUser()" title="로그아웃">로그아웃</button>
+      </div>`
+    : `<button class="btn btn-ghost btn-sm" onclick="googleSignIn()">🔑 Google로 로그인</button>`;
+
   if (!activeTrip) {
-    el.innerHTML = `<button class="btn btn-primary" onclick="openModal('modal-import')">✈️ 여행 가져오기</button>`;
+    el.innerHTML = loginBtn + `<button class="btn btn-primary" onclick="openModal('modal-import')">✈️ 여행 가져오기</button>`;
   } else {
-    el.innerHTML = '';
+    el.innerHTML = loginBtn;
   }
 }
 function renderTripHeader() {
@@ -2180,12 +2258,43 @@ async function refreshServiceWorker() {
 
 async function main() {
   await initDB();
-  trips = await dbGetAll();
-  renderHome();
-  renderHeader();
   renderThemePicker();
   applyTheme(localStorage.getItem('rf-theme') || 'purple');
   await refreshServiceWorker();
+
+  // Firebase 로그인 상태 감지 → 자동으로 클라우드 데이터 불러오기
+  _auth.onAuthStateChanged(async user => {
+    currentUser = user;
+
+    if (user) {
+      // 로그인됨: 클라우드 데이터 로드 후 로컬과 병합
+      const cloudTrips = await fsGetAllTrips();
+      const localTrips = await dbGetAll();
+
+      if (cloudTrips && cloudTrips.length > 0) {
+        // 클라우드 기준으로 병합 (클라우드 우선)
+        const merged = [...cloudTrips];
+        for (const lt of localTrips) {
+          if (!merged.find(ct => ct.id === lt.id)) {
+            merged.push(lt);
+            await fsSaveTrip(lt); // 로컬에만 있던 여행도 클라우드에 업로드
+          }
+        }
+        trips = merged;
+        for (const t of merged) await dbPutLocal(t); // 로컬DB도 최신화
+      } else {
+        // 첫 로그인: 로컬 데이터를 클라우드에 업로드
+        trips = await dbGetAll();
+        for (const t of trips) await fsSaveTrip(t);
+      }
+    } else {
+      // 로그아웃 상태: 로컬 데이터만 사용
+      trips = await dbGetAll();
+    }
+
+    renderHome();
+    renderHeader();
+  });
 }
 main().catch(console.error);
 </script>
