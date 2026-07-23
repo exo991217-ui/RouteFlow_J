@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RouteFlow</title>
-  <meta name="description" content="장산이 RouteFlow" />
+  <meta name="description" content="여행 일정을 보기 편하게 정리하는 RouteFlow" />
   <meta name="theme-color" content="#8B5CF6" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -246,11 +246,38 @@
     .route-flow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
     .route-flow-dot.to { background: var(--pink); }
     .route-flow-place-name { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .route-flow-connector { display: flex; align-items: center; gap: 6px; padding: 4px 0 4px 20px; }
-    .route-flow-line { width: 1px; height: 18px; background: var(--border-strong); margin-left: 3.5px; }
-    .route-flow-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; background: var(--primary-soft); border: 1px solid #C4B5FD; font-size: 11px; font-weight: 700; color: var(--primary-dark); white-space: nowrap; }
+    /* Route flow connector — left-border approach so badge feels connected to the line */
+    .route-flow-connector {
+      margin-left: 20px; /* aligns with dot center (16px padding + 4px dot radius) */
+      border-left: 1.5px solid var(--border-strong);
+      padding: 3px 16px 3px 10px;
+    }
+    .route-flow-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; white-space: nowrap;
+      background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border);
+    }
+    /* Transport-specific badge colors */
+    .route-flow-badge.trans-기차  { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
+    .route-flow-badge.trans-버스  { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+    .route-flow-badge.trans-도보  { background: #FEF3C7; color: #78350F; border-color: #FDE68A; }
+    .route-flow-badge.trans-택시  { background: #FFEDD5; color: #9A3412; border-color: #FED7AA; }
+    .route-flow-badge.trans-지하철 { background: #EDE9FE; color: #5B21B6; border-color: #C4B5FD; }
+    .route-flow-badge.trans-비행기 { background: #ECFEFF; color: #155E75; border-color: #67E8F9; }
+    .route-flow-badge.trans-기타  { background: var(--surface2); color: var(--text-muted); border-color: var(--border); }
     .route-flow-link-icon { font-size: 12px; color: var(--primary); text-decoration: none; padding: 2px 6px; border-radius: 6px; transition: background .15s; flex-shrink: 0; }
     .route-flow-link-icon:hover { background: var(--primary-soft); }
+
+    /* Theme picker */
+    .theme-picker { display: flex; align-items: center; gap: 5px; }
+    .theme-swatch {
+      width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; padding: 0; transition: transform .18s, border-color .18s, box-shadow .18s;
+      flex-shrink: 0;
+    }
+    .theme-swatch:hover { transform: scale(1.25); border-color: rgba(0,0,0,.18); }
+    .theme-swatch.active { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 0 2px var(--surface); }
 
     /* Route cards (detail panel) */
     .route-cards { display: flex; flex-direction: column; gap: 10px; }
@@ -444,7 +471,10 @@
       <div class="logo-icon"></div>
       RouteFlow
     </button>
-    <div id="header-right" class="header-right"></div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="theme-picker" id="theme-picker"></div>
+      <div id="header-right" class="header-right"></div>
+    </div>
   </div>
 </header>
 
@@ -1262,6 +1292,7 @@ function renderRoute() {
   // ── Flow panel (summary) ──
   const flowItems = routes.map((r, idx) => {
     const dur = r.durationMin ? fmtDuration(r.durationMin) : '시간 미정';
+    const tr = r.transport || '기타';
     const linkIcon = r.mapsUrl
       ? `<a href="${escH(r.mapsUrl)}" target="_blank" rel="noopener" class="route-flow-link-icon" onclick="event.stopPropagation()" title="Google Maps 열기">🔗</a>`
       : '';
@@ -1273,8 +1304,7 @@ function renderRoute() {
             <div class="route-flow-place-name">${escH(r.from || '출발 장소')}</div>
           </div>
           <div class="route-flow-connector">
-            <div class="route-flow-line"></div>
-            <div class="route-flow-badge">${escH(r.transport||'기타')} · ${dur}</div>
+            <div class="route-flow-badge trans-${escH(tr)}">${escH(tr)} · ${dur}</div>
           </div>
           <div class="route-flow-place-row">
             <div class="route-flow-dot to"></div>
@@ -1631,6 +1661,79 @@ function printTrip() {
 }
 
 // ═══════════════════════════════════════════════
+// Theme system
+// ═══════════════════════════════════════════════
+const THEMES = {
+  purple: {
+    '--bg':'#F9F6FF','--surface2':'#F4F0FF','--border':'#DDD0F8','--border-strong':'#BFA8EC',
+    '--text':'#221040','--text-muted':'#6B5B9A','--text-subtle':'#9883C0',
+    '--primary':'#8B5CF6','--primary-dark':'#7C3AED','--primary-soft':'#EDE9FE',
+  },
+  pink: {
+    '--bg':'#FFF6F9','--surface2':'#FFE8F0','--border':'#F9C0D8','--border-strong':'#F094BE',
+    '--text':'#3A0020','--text-muted':'#9A3070','--text-subtle':'#C070A0',
+    '--primary':'#EC4899','--primary-dark':'#DB2777','--primary-soft':'#FCE7F3',
+  },
+  red: {
+    '--bg':'#FFF5F5','--surface2':'#FFEBEB','--border':'#FECACA','--border-strong':'#FCA5A5',
+    '--text':'#2D0000','--text-muted':'#991B1B','--text-subtle':'#C04040',
+    '--primary':'#F87171','--primary-dark':'#EF4444','--primary-soft':'#FEE2E2',
+  },
+  yellow: {
+    '--bg':'#FFFDF0','--surface2':'#FFF8D6','--border':'#FDE68A','--border-strong':'#FCD34D',
+    '--text':'#2D1A00','--text-muted':'#92400E','--text-subtle':'#B87020',
+    '--primary':'#FBBF24','--primary-dark':'#F59E0B','--primary-soft':'#FEF3C7',
+  },
+  green: {
+    '--bg':'#F2FDF5','--surface2':'#E0FAE8','--border':'#A7F3D0','--border-strong':'#6EE7B7',
+    '--text':'#0A2E18','--text-muted':'#065F46','--text-subtle':'#2D8060',
+    '--primary':'#34D399','--primary-dark':'#10B981','--primary-soft':'#D1FAE5',
+  },
+  blue: {
+    '--bg':'#F0F7FF','--surface2':'#E0EEFF','--border':'#BFDBFE','--border-strong':'#93C5FD',
+    '--text':'#0A1E3D','--text-muted':'#1E40AF','--text-subtle':'#3B82F6',
+    '--primary':'#60A5FA','--primary-dark':'#3B82F6','--primary-soft':'#DBEAFE',
+  },
+  sky: {
+    '--bg':'#F0FAFF','--surface2':'#E0F5FF','--border':'#BAE6FD','--border-strong':'#7DD3FC',
+    '--text':'#0A2030','--text-muted':'#0369A1','--text-subtle':'#0EA5E9',
+    '--primary':'#38BDF8','--primary-dark':'#0EA5E9','--primary-soft':'#E0F2FE',
+  },
+};
+
+const SWATCH_LIST = [
+  { name:'red',    color:'#F87171', label:'빨강' },
+  { name:'pink',   color:'#EC4899', label:'분홍' },
+  { name:'yellow', color:'#FBBF24', label:'노랑' },
+  { name:'green',  color:'#34D399', label:'초록' },
+  { name:'blue',   color:'#60A5FA', label:'파랑' },
+  { name:'sky',    color:'#38BDF8', label:'하늘' },
+  { name:'purple', color:'#8B5CF6', label:'보라' },
+];
+
+function applyTheme(name) {
+  const theme = THEMES[name];
+  if (!theme) return;
+  const root = document.documentElement;
+  Object.entries(theme).forEach(([k, v]) => root.style.setProperty(k, v));
+  localStorage.setItem('rf-theme', name);
+  document.querySelectorAll('.theme-swatch').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === name);
+  });
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme['--primary']);
+}
+
+function renderThemePicker() {
+  const el = document.getElementById('theme-picker');
+  if (!el) return;
+  const saved = localStorage.getItem('rf-theme') || 'purple';
+  el.innerHTML = SWATCH_LIST.map(s =>
+    `<button class="theme-swatch${s.name === saved ? ' active' : ''}" data-theme="${s.name}" style="background:${s.color}" title="${s.label}" onclick="applyTheme('${s.name}')"></button>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════
 // Init
 // ═══════════════════════════════════════════════
 async function main() {
@@ -1638,6 +1741,8 @@ async function main() {
   trips = await dbGetAll();
   renderHome();
   renderHeader();
+  renderThemePicker();
+  applyTheme(localStorage.getItem('rf-theme') || 'purple');
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
