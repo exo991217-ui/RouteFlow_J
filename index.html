@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RouteFlow</title>
   <meta name="description" content="여행 일정을 보기 편하게 정리하는 RouteFlow" />
-  <meta name="theme-color" content="#FF3C00" />
+  <meta name="theme-color" content="#1D4ED8" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -311,6 +311,250 @@
       .route-stat-card { min-width: 90px; }
       .route-flow-item { grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr); gap: 6px; }
       .route-flow-place { padding: 8px; font-size: 11px; }
+    }
+
+    /* ════════════════════════════════════════════
+       HIGH-CONTRAST VISUAL SYSTEM
+       밝은 쿨그레이 바탕 + 네이비 본문 + 블루 액션
+    ════════════════════════════════════════════ */
+    :root {
+      --rf-bg: #EEF2F7;
+      --rf-surface: #FFFFFF;
+      --rf-surface-muted: #F5F8FC;
+      --rf-border: #C7D2E0;
+      --rf-border-strong: #94A3B8;
+      --rf-text: #132238;
+      --rf-text-muted: #52647A;
+      --rf-text-subtle: #687A90;
+      --rf-blue: #1D4ED8;
+      --rf-blue-dark: #173EA5;
+      --rf-orange: #EA580C;
+      --rf-orange-soft: #FFF1E8;
+      --rf-green: #047857;
+      --rf-purple: #6D28D9;
+    }
+
+    body {
+      background: var(--rf-bg);
+      color: var(--rf-text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    button, input, select, textarea { color: var(--rf-text); }
+    button:focus-visible, a:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible {
+      outline: 3px solid #93C5FD;
+      outline-offset: 2px;
+    }
+
+    .header,
+    .trip-header {
+      background: var(--rf-surface);
+      border-color: var(--rf-border);
+      box-shadow: 0 2px 10px rgba(30, 55, 90, .06);
+    }
+    .logo { color: var(--rf-text); }
+    .logo-icon { background: var(--rf-blue); }
+
+    .btn { min-height: 38px; }
+    .btn-primary {
+      background: var(--rf-blue);
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(29, 78, 216, .22);
+    }
+    .btn-primary:hover { background: var(--rf-blue-dark); opacity: 1; }
+    .btn-secondary {
+      background: #E2E8F0;
+      color: #1E293B;
+      border: 1px solid #CBD5E1;
+    }
+    .btn-secondary:hover { background: #CBD5E1; opacity: 1; }
+    .btn-ghost,
+    .btn-icon {
+      color: #334155;
+      border-color: var(--rf-border-strong);
+      background: #fff;
+    }
+    .btn-ghost:hover,
+    .btn-icon:hover { background: #E8F0FF; border-color: var(--rf-blue); opacity: 1; }
+    .btn-danger { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+
+    .content-wrap { padding-top: 32px; padding-bottom: 40px; }
+    .home-title { color: var(--rf-text); font-size: 24px; letter-spacing: -.3px; }
+    .home-sub,
+    .empty-sub { color: var(--rf-text-muted); }
+    .empty-title { color: var(--rf-text); }
+
+    .trip-card,
+    .route-card,
+    .route-stat-card,
+    .budget-card,
+    .budget-table,
+    .timetable-wrap {
+      background: var(--rf-surface);
+      border-color: var(--rf-border);
+      box-shadow: 0 3px 12px rgba(30, 55, 90, .08);
+    }
+    .trip-card:hover,
+    .route-card:hover { border-color: #60A5FA; box-shadow: 0 8px 22px rgba(30, 55, 90, .14); }
+    .trip-card-name,
+    .route-card-route { color: var(--rf-text); }
+    .trip-card-dates,
+    .trip-card-stat,
+    .trip-meta,
+    .route-card-info { color: var(--rf-text-muted); }
+    .trip-card-tag {
+      background: #E8F0FF;
+      color: #1E40AF;
+      border: 1px solid #BFDBFE;
+    }
+    .trip-card-footer { border-color: #D9E2EE; }
+    .trip-card-del { color: #64748B; }
+    .trip-card-del:hover { color: #B91C1C; background: #FEE2E2; }
+    .add-trip-card,
+    .add-route-btn {
+      color: #52647A;
+      border-color: #94A3B8;
+      background: rgba(255,255,255,.55);
+    }
+    .add-trip-card:hover,
+    .add-route-btn:hover {
+      color: var(--rf-blue);
+      border-color: var(--rf-blue);
+      background: #EFF6FF;
+    }
+
+    .trip-header-back { color: #52647A; }
+    .trip-header-back:hover { color: var(--rf-blue); }
+    .tab-nav { border-bottom: 1px solid #CBD5E1; }
+    .tab-btn {
+      color: #52647A;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .tab-btn:hover { color: var(--rf-text); background: #F1F5F9; }
+    .tab-btn.active { color: var(--rf-blue); border-bottom-color: var(--rf-blue); }
+
+    .sched-toolbar { margin-bottom: 18px; }
+    .toggle-btn {
+      color: #334155;
+      border-color: var(--rf-border-strong);
+      background: #fff;
+      min-height: 36px;
+    }
+    .toggle-btn.on { background: var(--rf-orange); border-color: var(--rf-orange); color: #fff; }
+    .timetable-wrap { border: 1px solid var(--rf-border); overflow: auto; }
+    .timetable { min-width: 620px; }
+    .timetable th {
+      background: #E7EEF8;
+      color: #243B5A;
+      border-color: #C7D2E0;
+      padding: 12px 12px;
+    }
+    .timetable th.time-col,
+    .timetable td.time-cell { color: #52647A; font-weight: 700; }
+    .timetable th .day-num { color: var(--rf-blue); }
+    .timetable th .day-date { color: #52647A; font-weight: 600; }
+    .timetable td { border-color: #DCE4EE; background: #fff; }
+    .timetable tr:hover td { background: #F1F6FD; }
+    .cell-item {
+      border: 1px solid #D6E0EC;
+      background: #F8FAFC;
+      padding: 6px 8px;
+    }
+    .cell-item-time { color: #52647A; font-size: 11px; font-weight: 700; }
+    .cell-item-place { color: var(--rf-text); font-size: 12px; }
+    .cell-item-trans { background: #E2E8F0; color: #334155; font-weight: 700; }
+    .cell-item.cat-이동 { background: #FFF1E8; border-color: #FDBA74; }
+    .cell-item.cat-관광 { background: #EAF2FF; border-color: #93C5FD; }
+    .cell-item.cat-숙소 { background: #E8F8F1; border-color: #86EFAC; }
+    .cell-item.cat-식사 { background: #FFF5E8; border-color: #FCD34D; }
+    .cell-item.cat-카페 { background: #FFFBEA; border-color: #FDE68A; }
+    .cell-item.cat-쇼핑 { background: #F3EDFF; border-color: #C4B5FD; }
+    .cell-item.cat-체험 { background: #E8F8FC; border-color: #67E8F9; }
+
+    .route-day-tabs { border-color: #CBD5E1; }
+    .route-day-tab { color: #52647A; font-size: 14px; font-weight: 600; }
+    .route-day-tab:hover { color: var(--rf-text); background: #F1F5F9; }
+    .route-day-tab.active { color: var(--rf-blue); border-bottom-color: var(--rf-blue); }
+    .route-day-stats { border-color: #CBD5E1; }
+    .route-stat-card { border-width: 1px; }
+    .route-stat-label,
+    .budget-card-label,
+    .section-sub { color: #52647A; }
+    .route-stat-value,
+    .budget-card-value { color: var(--rf-text); }
+    .route-flow-place { border-color: var(--rf-border); color: var(--rf-text); }
+    .route-flow-link { color: #52647A; }
+    .route-flow-link::before { background: #94A3B8; }
+    .route-flow-arrow { color: var(--rf-orange); }
+    .route-flow-meta { background: var(--rf-orange-soft); color: #C2410C; border: 1px solid #FDBA74; }
+    .route-flow-source { color: #52647A; }
+    .route-card-auto { background: #FFF7ED; color: #C2410C; border: 1px solid #FDBA74; }
+    .route-card-num { background: #DBEAFE; color: #1E40AF; }
+    .route-tag.status-plan,
+    .route-tag.detail-tag { background: #E2E8F0; color: #334155; }
+    .route-card-memo { background: #F1F5F9; color: #334155; border: 1px solid #D8E1EC; }
+    .route-act-btn { color: #64748B; }
+    .route-act-btn:hover { color: #1E293B; background: #E2E8F0; }
+
+    .t-chip { background: #E2E8F0; color: #334155; border: 1px solid #CBD5E1; }
+    .t-chip.기차 { background: #DBEAFE; color: #1E40AF; border-color: #93C5FD; }
+    .t-chip.버스 { background: #DCFCE7; color: #166534; border-color: #86EFAC; }
+    .t-chip.도보 { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
+    .t-chip.택시 { background: #FFE4E6; color: #9F1239; border-color: #FDA4AF; }
+    .t-chip.지하철 { background: #EDE9FE; color: #5B21B6; border-color: #C4B5FD; }
+    .t-chip.비행기 { background: #CFFAFE; color: #155E75; border-color: #67E8F9; }
+
+    .budget-card { border: 1px solid var(--rf-border); }
+    .budget-card.primary { border-top: 4px solid var(--rf-blue); }
+    .budget-card.primary .budget-card-value,
+    .budget-total .amount { color: var(--rf-blue); }
+    .cat-bar-track { background: #DCE4EE; height: 9px; }
+    .cat-bar-fill { background: var(--rf-blue); }
+    .cat-bar-name,
+    .cat-bar-amt { color: #334155; font-weight: 600; }
+    .budget-table th { background: #E7EEF8; color: #334155; border-color: #C7D2E0; }
+    .budget-table td { border-color: #DCE4EE; color: var(--rf-text); }
+    .budget-subtotal td { background: #F1F5F9; }
+    .budget-total td { background: #EFF6FF; border-top-color: var(--rf-blue) !important; }
+
+    .modal-overlay { background: rgba(15, 23, 42, .62); }
+    .modal { border: 1px solid #CBD5E1; box-shadow: 0 24px 70px rgba(15, 23, 42, .28); }
+    .modal-header,
+    .modal-footer { border-color: #CBD5E1; }
+    .modal-title { color: var(--rf-text); }
+    .modal-close { color: #52647A; }
+    .modal-close:hover { color: #B91C1C; background: #FEE2E2; }
+    .paste-hint,
+    .form-label,
+    .preview-field-label { color: #334155; }
+    .paste-area,
+    .form-input,
+    .form-select,
+    .form-textarea {
+      border-color: var(--rf-border-strong);
+      color: var(--rf-text);
+      background: #fff;
+    }
+    .paste-area::placeholder,
+    .form-input::placeholder,
+    .form-textarea::placeholder { color: #718198; opacity: 1; }
+    .paste-area:focus,
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus { border-color: var(--rf-blue); box-shadow: 0 0 0 3px #DBEAFE; }
+    .preview-box { background: #EFF6FF; border: 1px solid #BFDBFE; }
+    .preview-field-value { color: var(--rf-text); }
+    .cat-chip-label { border-color: var(--rf-border-strong); color: #334155; background: #fff; }
+    .cat-chip-label.checked { border-color: var(--rf-blue); background: #DBEAFE; color: #1E40AF; }
+    .share-url-box { border-color: var(--rf-border-strong); background: #F1F5F9; color: #334155; }
+
+    @media (max-width: 720px) {
+      .content-wrap { padding-top: 24px; }
+      .timetable { min-width: 560px; }
+      .tab-btn { padding-left: 13px; padding-right: 13px; }
+      .route-flow-item { grid-template-columns: minmax(0, 1fr) 106px minmax(0, 1fr); }
     }
   </style>
 </head>
