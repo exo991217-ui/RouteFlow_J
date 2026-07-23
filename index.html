@@ -432,19 +432,109 @@
     .share-copy-ok { display: none; color: var(--mint); font-size: 12px; font-weight: 700; }
 
     /* ════════════════════════════════════════════
+       PRINT SETTINGS
+    ════════════════════════════════════════════ */
+    .print-mode-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .print-mode-option { position: relative; cursor: pointer; }
+    .print-mode-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .print-mode-card {
+      display: flex; flex-direction: column; gap: 5px; min-height: 82px;
+      padding: 13px 14px; border: 1.5px solid var(--border-strong);
+      border-radius: 12px; background: var(--surface); color: var(--text-muted);
+      transition: all .15s;
+    }
+    .print-mode-card strong { color: var(--text); font-size: 13px; }
+    .print-mode-card span { font-size: 11px; line-height: 1.45; font-weight: 600; }
+    .print-mode-option input:checked + .print-mode-card {
+      border-color: var(--primary); background: var(--primary-soft);
+      box-shadow: 0 0 0 2px rgba(139,92,246,.12);
+    }
+    .print-route-select { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .print-route-select-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .print-route-select-title { font-size: 12px; color: var(--text-muted); font-weight: 800; }
+    .print-route-select-actions { display: flex; gap: 6px; }
+    .print-route-days { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .print-route-day-option {
+      display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+      border: 1px solid var(--border); border-radius: 9px; background: var(--surface2);
+      font-size: 12px; color: var(--text); font-weight: 700; cursor: pointer;
+    }
+    .print-route-day-option input { width: 15px; height: 15px; accent-color: var(--primary); }
+    .print-route-none { font-size: 12px; color: var(--text-subtle); font-weight: 600; padding: 8px 0; }
+
+    /* Print-only document. It is intentionally separate from the interactive
+       screen so print choices never mutate the visible tabs. */
+    #print-sheet { display: none; }
+    .print-document-title { margin-bottom: 7mm; }
+    .print-document-title h1 { font-size: 20px; line-height: 1.2; color: #221040; }
+    .print-document-title p { margin-top: 3px; font-size: 10px; color: #6B5B9A; font-weight: 700; }
+    .print-schedule-section { break-after: page; }
+    .print-schedule-day {
+      border: 1px solid #D8CCF0; border-radius: 8px; overflow: hidden;
+      margin-bottom: 5mm; break-inside: avoid;
+    }
+    .print-schedule-day-title {
+      padding: 7px 9px; background: #F0EAFE; color: #5B21B6;
+      font-size: 12px; font-weight: 800;
+    }
+    .print-schedule-row {
+      display: grid; grid-template-columns: 44px 1fr auto;
+      gap: 8px; padding: 6px 9px; border-top: 1px solid #EEEAF7;
+      font-size: 10px; line-height: 1.45; align-items: start;
+    }
+    .print-schedule-time { color: #7C3AED; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .print-schedule-place { color: #221040; font-weight: 800; }
+    .print-schedule-memo { display: block; color: #6B5B9A; font-size: 9px; margin-top: 1px; }
+    .print-schedule-meta { color: #6B5B9A; font-size: 9px; text-align: right; white-space: nowrap; font-weight: 700; }
+    .print-route-page {
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8mm; min-height: 180mm; break-after: page;
+    }
+    .print-route-section { page: route-landscape; }
+    .print-route-page:last-child { break-after: auto; }
+    .print-route-day {
+      min-width: 0; padding: 5mm; border: 1px solid #D8CCF0;
+      border-radius: 8px; break-inside: avoid; overflow: hidden;
+    }
+    .print-route-day.empty { display: block; }
+    .print-route-day-title {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+      color: #221040; border-bottom: 2px solid #8B5CF6; padding-bottom: 5px; margin-bottom: 8px;
+    }
+    .print-route-day-title strong { font-size: 15px; }
+    .print-route-day-title span { color: #6B5B9A; font-size: 10px; font-weight: 700; }
+    .print-route-flow { display: flex; flex-direction: column; gap: 6px; }
+    .print-route-flow-item { padding: 6px 0 8px; border-bottom: 1px dotted #BFA8EC; }
+    .print-route-flow-item:last-child { border-bottom: none; }
+    .print-route-flow-line {
+      display: grid; grid-template-columns: 20px minmax(0, 1fr) minmax(6px, .35fr) auto minmax(6px, .35fr) minmax(0, 1fr);
+      gap: 5px; align-items: center; font-size: 10px; font-weight: 800; color: #221040;
+    }
+    .print-route-num {
+      width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%; color: #5B21B6; background: #EDE9FE; border: 1px solid #BFA8EC; font-size: 9px;
+    }
+    .print-route-place { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .print-route-connector { border-top: 2px dotted #BFA8EC; min-width: 6px; }
+    .print-route-transport { color: #5B21B6; white-space: nowrap; font-size: 9px; }
+    .print-route-sub { padding: 4px 0 0 25px; color: #6B5B9A; font-size: 9px; line-height: 1.4; }
+    .print-route-sub a { color: #5B21B6; font-weight: 800; }
+    .print-route-detail {
+      margin: 4px 0 0 25px; padding: 5px 7px; background: #F8F5FF;
+      color: #6B5B9A; font-size: 9px; line-height: 1.45; border-radius: 5px;
+    }
+
+    /* ════════════════════════════════════════════
        PRINT
     ════════════════════════════════════════════ */
     @media print {
-      .header, .trip-actions, .route-card-del-btn, .add-route-btn,
-      .route-day-tabs, .modal-overlay, .sched-toolbar { display: none !important; }
+      @page { size: A4; margin: 12mm; }
+      @page route-landscape { size: A4 landscape; margin: 10mm; }
+      .header, .page, .trip-actions, .modal-overlay { display: none !important; }
       body { background: #fff; font-size: 12px; }
-      .content-wrap { padding: 0; }
-      .tab-panel { display: block !important; }
-      .timetable-wrap { box-shadow: none; overflow: visible; }
-      .route-cards { max-width: 100%; }
-      .route-card { break-inside: avoid; }
-      .route-2col { display: block; }
-      .route-left { position: static; }
+      body.is-printing #print-sheet { display: block !important; }
+      #print-sheet.print-route-sheet { page: route-landscape; }
+      .print-route-page { min-height: 180mm; }
     }
 
     /* ── Responsive ── */
@@ -689,6 +779,51 @@
     </div>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════
+     MODAL: Print settings
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-print" onclick="onOverlayClick(event,'modal-print')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">🖨️ 인쇄 설정</div>
+      <button class="modal-close" onclick="closeModal('modal-print')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-mode-options">
+        <label class="print-mode-option">
+          <input type="radio" name="print-mode" value="schedule" checked onchange="togglePrintRoutePicker()" />
+          <span class="print-mode-card"><strong>일정 인쇄</strong><span>여행 일정만 인쇄합니다.</span></span>
+        </label>
+        <label class="print-mode-option">
+          <input type="radio" name="print-mode" value="route" onchange="togglePrintRoutePicker()" />
+          <span class="print-mode-card"><strong>이동 경로 인쇄</strong><span>선택한 날짜를 A4 가로로 인쇄합니다.</span></span>
+        </label>
+        <label class="print-mode-option">
+          <input type="radio" name="print-mode" value="all" onchange="togglePrintRoutePicker()" />
+          <span class="print-mode-card"><strong>전체 인쇄</strong><span>일정과 모든 이동 경로를 인쇄합니다.</span></span>
+        </label>
+      </div>
+      <div class="print-route-select" id="print-route-select" style="display:none;">
+        <div class="print-route-select-head">
+          <div class="print-route-select-title">이동 경로를 인쇄할 날짜 선택</div>
+          <div class="print-route-select-actions">
+            <button class="btn btn-secondary btn-sm" onclick="setAllPrintRouteDates(true)">전체</button>
+            <button class="btn btn-secondary btn-sm" onclick="setAllPrintRouteDates(false)">해제</button>
+          </div>
+        </div>
+        <div class="print-route-days" id="print-route-days"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-print')">취소</button>
+      <button class="btn btn-primary" onclick="startConfiguredPrint()">인쇄하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Filled only for the selected print mode, then shown by @media print. -->
+<div id="print-sheet" aria-hidden="true"></div>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -1698,8 +1833,167 @@ function copyTripText() {
 // Print
 // ═══════════════════════════════════════════════
 function printTrip() {
-  window.print();
+  if (!activeTrip) return;
+  renderPrintRoutePicker();
+  document.querySelector('input[name="print-mode"][value="schedule"]').checked = true;
+  togglePrintRoutePicker();
+  openModal('modal-print');
 }
+
+function getPrintMode() {
+  return document.querySelector('input[name="print-mode"]:checked')?.value || 'schedule';
+}
+
+function renderPrintRoutePicker() {
+  const el = document.getElementById('print-route-days');
+  if (!el || !activeTrip) return;
+  const dates = getRouteDates();
+  el.innerHTML = dates.length
+    ? dates.map(date => {
+      const n = dayN(date, activeTrip.dateRange.start);
+      const routeCount = (activeTrip.routes || []).filter(route => route.date === date).length;
+      return `<label class="print-route-day-option">
+        <input type="checkbox" name="print-route-date" value="${escH(date)}" checked />
+        <span>${n ? `Day ${n}` : dateLabel(date)} · ${date} <small>(${routeCount}개 경로)</small></span>
+      </label>`;
+    }).join('')
+    : '<div class="print-route-none">인쇄할 이동 경로 날짜가 없습니다.</div>';
+}
+
+function togglePrintRoutePicker() {
+  const picker = document.getElementById('print-route-select');
+  if (picker) picker.style.display = getPrintMode() === 'route' ? 'block' : 'none';
+}
+
+function setAllPrintRouteDates(checked) {
+  document.querySelectorAll('input[name="print-route-date"]').forEach(input => {
+    input.checked = checked;
+  });
+}
+
+function sortedTripDates() {
+  const dates = new Set([
+    ...(activeTrip?.schedule || []).map(item => item.date),
+    ...(activeTrip?.routes || []).map(route => route.date),
+  ].filter(Boolean));
+  return [...dates].sort();
+}
+
+function printTripHeading() {
+  const t = activeTrip;
+  const range = t.dateRange.start && t.dateRange.end
+    ? `${t.dateRange.start} ~ ${t.dateRange.end}` : '';
+  return `<div class="print-document-title">
+    <h1>${escH(t.name || 'RouteFlow')}</h1>
+    <p>${escH([range, t.country, t.companions].filter(Boolean).join(' · '))}</p>
+  </div>`;
+}
+
+function renderPrintSchedule() {
+  const t = activeTrip;
+  const byDate = {};
+  (t.schedule || []).forEach(item => {
+    const date = item.date || '미정';
+    (byDate[date] = byDate[date] || []).push(item);
+  });
+  const days = Object.keys(byDate).sort().map(date => {
+    const n = dayN(date, t.dateRange.start);
+    const rows = byDate[date]
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+      .map(item => `<div class="print-schedule-row">
+        <div class="print-schedule-time">${escH(item.time || '—')}</div>
+        <div>
+          <div class="print-schedule-place">${escH(item.place || '—')}</div>
+          ${item.memo ? `<span class="print-schedule-memo">${escH(item.memo)}</span>` : ''}
+        </div>
+        <div class="print-schedule-meta">${escH([item.category, item.transport].filter(Boolean).join(' · '))}</div>
+      </div>`).join('');
+    return `<section class="print-schedule-day">
+      <div class="print-schedule-day-title">${n ? `Day ${n}` : '일정'} · ${escH(date)}</div>
+      ${rows || '<div class="print-schedule-row">일정 없음</div>'}
+    </section>`;
+  }).join('');
+  return `<section class="print-schedule-section">${printTripHeading()}${days || '<p>등록된 일정이 없습니다.</p>'}</section>`;
+}
+
+function renderPrintRouteDay(date) {
+  const t = activeTrip;
+  const n = dayN(date, t.dateRange.start);
+  const routes = (t.routes || []).filter(route => route.date === date);
+  const items = routes.map((route, index) => {
+    const duration = route.durationMin ? fmtDuration(route.durationMin) : '미정';
+    const transport = [route.transport || '기타', duration].join(' · ');
+    const details = [
+      route.platform ? `탑승 ${route.platform}` : '',
+      route.alight ? `하차 ${route.alight}` : '',
+      route.cost ? `${route.cost.toLocaleString('ko-KR')}원` : '',
+      route.distanceKm ? `${route.distanceKm}km` : '',
+    ].filter(Boolean).join(' · ');
+    const link = route.mapsUrl
+      ? `<a href="${escH(route.mapsUrl)}" target="_blank" rel="noopener">지도 링크 ↗</a>` : '';
+    return `<div class="print-route-flow-item">
+      <div class="print-route-flow-line">
+        <span class="print-route-num">${index + 1}</span>
+        <span class="print-route-place" title="${escH(route.from || '출발')}">${escH(route.from || '출발')}</span>
+        <span class="print-route-connector"></span>
+        <span class="print-route-transport">${escH(transport)}</span>
+        <span class="print-route-connector"></span>
+        <span class="print-route-place" title="${escH(route.to || '도착')}">${escH(route.to || '도착')}</span>
+      </div>
+      ${(route.memo || link) ? `<div class="print-route-sub">${link}${route.memo ? ` · ${escH(route.memo)}` : ''}</div>` : ''}
+      ${details ? `<div class="print-route-detail">${escH(details)}</div>` : ''}
+    </div>`;
+  }).join('');
+  return `<section class="print-route-day${routes.length ? '' : ' empty'}">
+    <div class="print-route-day-title"><strong>${n ? `Day ${n}` : '이동 경로'}</strong><span>${escH(date)}</span></div>
+    <div class="print-route-flow">${items || '<div class="print-route-none">이 날은 이동 경로가 없습니다.</div>'}</div>
+  </section>`;
+}
+
+function renderPrintRoutes(dates, includeHeading = true) {
+  const pages = [];
+  for (let index = 0; index < dates.length; index += 2) {
+    pages.push(`<div class="print-route-page">
+      ${renderPrintRouteDay(dates[index])}
+      ${dates[index + 1] ? renderPrintRouteDay(dates[index + 1]) : '<section class="print-route-day empty"></section>'}
+    </div>`);
+  }
+  return `<section class="print-route-section">${includeHeading ? printTripHeading() : ''}${pages.join('')}</section>`;
+}
+
+function startConfiguredPrint() {
+  if (!activeTrip) return;
+  const mode = getPrintMode();
+  let routeDates = [];
+  if (mode === 'route') {
+    routeDates = [...document.querySelectorAll('input[name="print-route-date"]:checked')].map(input => input.value);
+    if (!routeDates.length) {
+      alert('이동 경로를 인쇄할 날짜를 하나 이상 선택해 주세요.');
+      return;
+    }
+  } else if (mode === 'all') {
+    routeDates = getRouteDates();
+  }
+  const sheet = document.getElementById('print-sheet');
+  sheet.className = mode === 'route' ? 'print-route-sheet' : mode === 'all' ? 'print-all-sheet' : 'print-schedule-sheet';
+  sheet.innerHTML = mode === 'schedule'
+    ? renderPrintSchedule()
+    : mode === 'route'
+      ? renderPrintRoutes(routeDates)
+      : `${renderPrintSchedule()}${renderPrintRoutes(routeDates)}`;
+  closeModal('modal-print');
+  document.body.classList.add('is-printing');
+  window.setTimeout(() => window.print(), 80);
+}
+
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('is-printing');
+  const sheet = document.getElementById('print-sheet');
+  if (sheet) {
+    sheet.className = '';
+    sheet.innerHTML = '';
+  }
+});
 
 // ═══════════════════════════════════════════════
 // Theme system
