@@ -227,35 +227,36 @@
     .t-chip.지하철 { background: var(--primary-soft); color: #5B21B6; border-color: #C4B5FD; }
     .t-chip.비행기 { background: #ECFEFF; color: #155E75; border-color: #67E8F9; }
 
-    /* Route flow (summary panel) */
+    /* Route flow (summary panel) — horizontal layout: 출발 ──●── 장소 */
     .route-flow-panel { background: var(--surface); border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: 0 2px 12px rgba(139,92,246,.08); }
-    .route-flow-header { padding: 14px 16px; background: var(--primary-soft); border-bottom: 1.5px solid var(--border); font-size: 12px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: .5px; }
-    .route-flow { display: flex; flex-direction: column; gap: 0; }
+    .route-flow-header { padding: 12px 14px; background: var(--primary-soft); border-bottom: 1.5px solid var(--border); font-size: 12px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: .5px; }
+    .route-flow { display: flex; flex-direction: column; }
     .route-flow-item {
-      display: flex; align-items: stretch; gap: 0;
+      display: flex; align-items: center; gap: 0;
+      padding: 9px 12px; border-bottom: 1px solid var(--border);
       cursor: pointer; transition: background .15s;
-      border-bottom: 1px solid var(--border);
-      position: relative;
     }
     .route-flow-item:last-child { border-bottom: none; }
     .route-flow-item:hover { background: var(--primary-soft); }
     .route-flow-item.active { background: var(--primary-soft); }
 
-    .route-flow-places { padding: 14px 16px; flex: 1; min-width: 0; }
-    .route-flow-place-row { display: flex; align-items: center; gap: 8px; }
-    .route-flow-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
-    .route-flow-dot.to { background: var(--pink); }
-    .route-flow-place-name { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    /* Route flow connector — left-border approach so badge feels connected to the line */
-    .route-flow-connector {
-      margin-left: 20px; /* aligns with dot center (16px padding + 4px dot radius) */
-      border-left: 1.5px solid var(--border-strong);
-      padding: 3px 16px 3px 10px;
+    /* Place name boxes */
+    .route-flow-from, .route-flow-to {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 4px 8px;
+      font-size: 11px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 82px; flex-shrink: 0;
     }
+    /* Connecting dashes */
+    .route-flow-dash {
+      flex: 1; height: 1.5px; background: var(--border-strong); min-width: 5px;
+    }
+    /* Transport badge (oval) */
     .route-flow-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 700; white-space: nowrap;
+      display: inline-flex; align-items: center; flex-shrink: 0;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 10px; font-weight: 700; white-space: nowrap;
       background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border);
     }
     /* Transport-specific badge colors */
@@ -266,7 +267,7 @@
     .route-flow-badge.trans-지하철 { background: #EDE9FE; color: #5B21B6; border-color: #C4B5FD; }
     .route-flow-badge.trans-비행기 { background: #ECFEFF; color: #155E75; border-color: #67E8F9; }
     .route-flow-badge.trans-기타  { background: var(--surface2); color: var(--text-muted); border-color: var(--border); }
-    .route-flow-link-icon { font-size: 12px; color: var(--primary); text-decoration: none; padding: 2px 6px; border-radius: 6px; transition: background .15s; flex-shrink: 0; }
+    .route-flow-link-icon { font-size: 11px; color: var(--primary); text-decoration: none; padding: 2px 5px; border-radius: 6px; transition: background .15s; flex-shrink: 0; margin-left: 4px; }
     .route-flow-link-icon:hover { background: var(--primary-soft); }
 
     /* Theme picker */
@@ -614,9 +615,9 @@
       <!-- 환승 체크박스 -->
       <div class="form-row">
         <div class="form-group full">
-          <div class="transfer-toggle-row" onclick="toggleTransferCheck()">
+          <div class="transfer-toggle-row">
             <label>
-              <input type="checkbox" id="rf-has-transfer" onchange="onTransferChange(event)" onclick="event.stopPropagation()" />
+              <input type="checkbox" id="rf-has-transfer" onchange="onTransferChange(event)" />
               환승 있음
             </label>
           </div>
@@ -1291,26 +1292,18 @@ function renderRoute() {
 
   // ── Flow panel (summary) ──
   const flowItems = routes.map((r, idx) => {
-    const dur = r.durationMin ? fmtDuration(r.durationMin) : '시간 미정';
+    const dur = r.durationMin ? fmtDuration(r.durationMin) : '미정';
     const tr = r.transport || '기타';
     const linkIcon = r.mapsUrl
       ? `<a href="${escH(r.mapsUrl)}" target="_blank" rel="noopener" class="route-flow-link-icon" onclick="event.stopPropagation()" title="Google Maps 열기">🔗</a>`
       : '';
     return `
       <div class="route-flow-item" onclick="highlightCard('${r.id}')" data-rid="${r.id}">
-        <div class="route-flow-places">
-          <div class="route-flow-place-row">
-            <div class="route-flow-dot"></div>
-            <div class="route-flow-place-name">${escH(r.from || '출발 장소')}</div>
-          </div>
-          <div class="route-flow-connector">
-            <div class="route-flow-badge trans-${escH(tr)}">${escH(tr)} · ${dur}</div>
-          </div>
-          <div class="route-flow-place-row">
-            <div class="route-flow-dot to"></div>
-            <div class="route-flow-place-name">${escH(r.to || '도착 장소')}</div>
-          </div>
-        </div>
+        <div class="route-flow-from" title="${escH(r.from||'출발')}">${escH(r.from || '출발')}</div>
+        <div class="route-flow-dash"></div>
+        <div class="route-flow-badge trans-${escH(tr)}">${escH(tr)} · ${dur}</div>
+        <div class="route-flow-dash"></div>
+        <div class="route-flow-to" title="${escH(r.to||'도착')}">${escH(r.to || '도착')}</div>
         ${linkIcon}
       </div>`;
   }).join('');
