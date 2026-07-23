@@ -209,7 +209,7 @@
     .route-day-tab:hover { color: var(--text); background: var(--surface2); }
 
     /* 2-col layout */
-    .route-2col { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+    .route-2col { display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start; }
     .route-left { position: sticky; top: 80px; }
     .route-right {}
 
@@ -232,13 +232,27 @@
     .route-flow-header { padding: 12px 14px; background: var(--primary-soft); border-bottom: 1.5px solid var(--border); font-size: 12px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: .5px; }
     .route-flow { display: flex; flex-direction: column; }
     .route-flow-item {
-      display: flex; align-items: center; gap: 0;
-      padding: 9px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
       cursor: pointer; transition: background .15s;
     }
     .route-flow-item:last-child { border-bottom: none; }
     .route-flow-item:hover { background: var(--primary-soft); }
     .route-flow-item.active { background: var(--primary-soft); }
+
+    /* Number badge */
+    .route-flow-num {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--primary-soft); color: var(--primary-dark);
+      border: 1.5px solid var(--border-strong);
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 2px;
+    }
+    .route-flow-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+    .route-flow-row  { display: flex; align-items: center; gap: 0; }
+    .route-flow-sub  { display: flex; align-items: center; gap: 6px; padding-left: 2px; flex-wrap: wrap; }
+    .route-flow-memo { font-size: 11px; color: var(--text-subtle); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
 
     /* Place name boxes */
     .route-flow-from, .route-flow-to {
@@ -246,7 +260,7 @@
       border-radius: 8px; padding: 4px 8px;
       font-size: 11px; font-weight: 700; color: var(--text);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 82px; flex-shrink: 0;
+      max-width: 110px; flex-shrink: 0;
     }
     /* Connecting dashes */
     .route-flow-dash {
@@ -834,6 +848,18 @@ let _editingRouteId = null;
 // ═══════════════════════════════════════════════
 // Parser
 // ═══════════════════════════════════════════════
+// 날짜 문자열 정규화: yy/mm/dd, yy-mm-dd, yyyy/mm/dd → yyyy-mm-dd
+function normDateStr(s) {
+  s = s.trim();
+  // yy/mm/dd 또는 yy-mm-dd (2자리 연도)
+  const m2 = s.match(/^(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{2})$/);
+  if (m2) return `20${m2[1]}-${m2[2]}-${m2[3]}`;
+  // yyyy/mm/dd (슬래시 4자리)
+  const m4s = s.match(/^(\d{4})[\/\.](\d{2})[\/\.](\d{2})$/);
+  if (m4s) return `${m4s[1]}-${m4s[2]}-${m4s[3]}`;
+  return s; // 이미 yyyy-mm-dd 형식
+}
+
 function parseTravel(text) {
   const trip = {
     id: 'trip_' + Date.now(),
@@ -1297,14 +1323,21 @@ function renderRoute() {
     const linkIcon = r.mapsUrl
       ? `<a href="${escH(r.mapsUrl)}" target="_blank" rel="noopener" class="route-flow-link-icon" onclick="event.stopPropagation()" title="Google Maps 열기">🔗</a>`
       : '';
+    const memoEl = r.memo ? `<span class="route-flow-memo">${escH(r.memo)}</span>` : '';
+    const subRow = (linkIcon || memoEl) ? `<div class="route-flow-sub">${linkIcon}${memoEl}</div>` : '';
     return `
       <div class="route-flow-item" onclick="highlightCard('${r.id}')" data-rid="${r.id}">
-        <div class="route-flow-from" title="${escH(r.from||'출발')}">${escH(r.from || '출발')}</div>
-        <div class="route-flow-dash"></div>
-        <div class="route-flow-badge trans-${escH(tr)}">${escH(tr)} · ${dur}</div>
-        <div class="route-flow-dash"></div>
-        <div class="route-flow-to" title="${escH(r.to||'도착')}">${escH(r.to || '도착')}</div>
-        ${linkIcon}
+        <div class="route-flow-num">${idx + 1}</div>
+        <div class="route-flow-main">
+          <div class="route-flow-row">
+            <div class="route-flow-from" title="${escH(r.from||'출발')}">${escH(r.from || '출발')}</div>
+            <div class="route-flow-dash"></div>
+            <div class="route-flow-badge trans-${escH(tr)}">${escH(tr)} · ${dur}</div>
+            <div class="route-flow-dash"></div>
+            <div class="route-flow-to" title="${escH(r.to||'도착')}">${escH(r.to || '도착')}</div>
+          </div>
+          ${subRow}
+        </div>
       </div>`;
   }).join('');
 
