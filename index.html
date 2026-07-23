@@ -6,10 +6,10 @@
   <title>RouteFlow</title>
   <meta name="description" content="여행 일정을 보기 편하게 정리하는 RouteFlow" />
   <meta name="theme-color" content="#8B5CF6" />
-  <!-- Keep the uploaded asset names explicit so the browser does not fall back
-       to a previously cached shell when this file is opened directly. -->
-  <link rel="icon" type="image/svg+xml" href="./favicon_1784795136387.svg" />
-  <link rel="manifest" href="./manifest_1784795136388.webmanifest" />
+  <!-- Standard asset names keep this export self-contained when opened as
+       index.html outside the original upload bundle. -->
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -2088,7 +2088,7 @@ async function refreshServiceWorker() {
     }
     // Use the versioned worker with cache updates disabled so the latest shell
     // is not replaced by an older cached design.
-    await navigator.serviceWorker.register('./sw_1784795136388.js?rev=3', {
+    await navigator.serviceWorker.register('./sw.js?rev=3', {
       updateViaCache: 'none',
     });
   } catch (_) {
