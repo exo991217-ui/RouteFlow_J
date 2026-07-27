@@ -550,16 +550,54 @@
     }
 
     /* ════════════════════════════════════════════
+       PRINT TIMETABLE (schedule grid)
+    ════════════════════════════════════════════ */
+    .print-tt-wrap { border: 1px solid #D8CCF0; border-radius: 6px; overflow: hidden; margin-top: 4mm; }
+    .print-tt { border-collapse: collapse; width: 100%; font-size: 9px; table-layout: fixed; }
+    .print-tt th { padding: 6px 5px; text-align: center; font-size: 9px; font-weight: 800; background: #F0EAFE; border-bottom: 1.5px solid #D8CCF0; border-right: 1px solid #D8CCF0; white-space: nowrap; color: #221040; overflow: hidden; }
+    .print-tt th.print-tt-time-col { width: 36px; color: #6B5B9A; }
+    .print-tt th.print-tt-day-col { min-width: 90px; }
+    .print-tt-day-num { font-size: 10px; font-weight: 800; color: #7C3AED; }
+    .print-tt-day-date { font-size: 8px; color: #6B5B9A; font-weight: 700; }
+    .print-tt td { padding: 3px 4px; border-bottom: 1px solid #EEEAF7; border-right: 1px solid #EEEAF7; vertical-align: top; }
+    .print-tt td.print-tt-time-cell { text-align: center; color: #9883C0; font-size: 8px; width: 36px; white-space: nowrap; font-weight: 700; padding: 5px 3px; }
+    .print-tt tr:last-child td { border-bottom: none; }
+    .print-tt-cell-item { display: flex; align-items: center; gap: 3px; padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; font-size: 8px; border: 1px solid #DDD0F8; background: #F4F0FF; overflow: hidden; }
+    .print-tt-cell-item:last-child { margin-bottom: 0; }
+    .print-tt-cell-item.cat-이동  { background: #FFEDD5; border-color: #FED7AA; }
+    .print-tt-cell-item.cat-관광  { background: #DBEAFE; border-color: #BFDBFE; }
+    .print-tt-cell-item.cat-숙소  { background: #D1FAE5; border-color: #A7F3D0; }
+    .print-tt-cell-item.cat-식사  { background: #FFF7E6; border-color: #FCD34D; }
+    .print-tt-cell-item.cat-카페  { background: #FEF3C7; border-color: #FDE68A; }
+    .print-tt-cell-item.cat-쇼핑  { background: #FCE7F3; border-color: #F9A8D4; }
+    .print-tt-cell-item.cat-체험  { background: #ECFEFF; border-color: #67E8F9; }
+    .print-tt-item-time  { color: #6B5B9A; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; font-size: 7px; flex-shrink: 0; }
+    .print-tt-item-place { font-weight: 800; color: #221040; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .print-tt-trans { background: rgba(139,92,246,.15); border-radius: 3px; padding: 0 3px; white-space: nowrap; color: #5B21B6; font-weight: 700; font-size: 7px; flex-shrink: 0; }
+
+    /* ════════════════════════════════════════════
        PRINT
     ════════════════════════════════════════════ */
     @media print {
       @page { size: A4; margin: 12mm; }
       @page route-landscape { size: A4 landscape; margin: 10mm; }
+      @page schedule-landscape { size: A4 landscape; margin: 8mm; }
       .header, .page, .trip-actions, .modal-overlay { display: none !important; }
       body { background: #fff; font-size: 12px; }
       body.is-printing #print-sheet { display: block !important; }
       #print-sheet.print-route-sheet { page: route-landscape; }
+      #print-sheet.print-schedule-sheet { page: schedule-landscape; }
       .print-route-page { min-height: 180mm; }
+      .print-tt-wrap { border: 1px solid #D8CCF0 !important; }
+      .print-tt th { background: #F0EAFE !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .print-tt-cell-item { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .print-tt-cell-item.cat-이동  { background: #FFEDD5 !important; }
+      .print-tt-cell-item.cat-관광  { background: #DBEAFE !important; }
+      .print-tt-cell-item.cat-숙소  { background: #D1FAE5 !important; }
+      .print-tt-cell-item.cat-식사  { background: #FFF7E6 !important; }
+      .print-tt-cell-item.cat-카페  { background: #FEF3C7 !important; }
+      .print-tt-cell-item.cat-쇼핑  { background: #FCE7F3 !important; }
+      .print-tt-cell-item.cat-체험  { background: #ECFEFF !important; }
     }
 
     /* ── Responsive ── */
@@ -1848,19 +1886,39 @@ async function saveRouteCard() {
     t.routes = [...(t.routes||[]), entry];
   }
 
+  // ── 요금이 있으면 예산탭에 자동 등록 ──
+  const autoExpId = 'e_route_' + entry.id;
+  // 기존 자동 등록 항목 제거 (편집 시 덮어쓰기)
+  t.expenses = (t.expenses||[]).filter(e => e.id !== autoExpId);
+  if (entry.cost) {
+    t.expenses = [...(t.expenses||[]), {
+      id: autoExpId,
+      date: entry.date || '',
+      category: '이동',
+      title: `${entry.from} → ${entry.to} (${entry.transport})`,
+      amount: entry.cost,
+      autoFromRoute: true,
+    }];
+  }
+
   await dbPut(t);
   trips = trips.map(x => x.id===t.id ? t : x);
   closeModal('modal-route');
   renderRoute();
+  // 예산탭이 열려있으면 갱신
+  if (currentTab === 'budget') renderBudget();
 }
 
 async function deleteRoute(id) {
   const t = activeTrip;
   if (!confirm('이 경로를 삭제할까요?')) return;
   t.routes = (t.routes||[]).filter(r => r.id !== id);
+  // 자동 등록된 예산 항목도 함께 삭제
+  t.expenses = (t.expenses||[]).filter(e => e.id !== 'e_route_' + id);
   await dbPut(t);
   trips = trips.map(x => x.id===t.id ? t : x);
   renderRoute();
+  if (currentTab === 'budget') renderBudget();
 }
 
 // ═══════════════════════════════════════════════
@@ -2045,29 +2103,63 @@ function printTripHeading() {
 
 function renderPrintSchedule() {
   const t = activeTrip;
+  const schedule = t.schedule || [];
+
+  if (!schedule.length) {
+    return `<section class="print-schedule-section">${printTripHeading()}<p>등록된 일정이 없습니다.</p></section>`;
+  }
+
   const byDate = {};
-  (t.schedule || []).forEach(item => {
-    const date = item.date || '미정';
-    (byDate[date] = byDate[date] || []).push(item);
+  schedule.forEach(s => { const d = s.date || '미정'; (byDate[d] = byDate[d] || []).push(s); });
+  const sortedDates = Object.keys(byDate).sort();
+
+  const times = schedule.map(s => parseInt((s.time || '09:00').split(':')[0])).filter(h => !isNaN(h));
+  const minH = Math.max(0, Math.min(...times));
+  const maxH = Math.min(23, Math.max(...times) + 1);
+  const hours = [];
+  for (let h = minH; h <= maxH; h++) hours.push(h);
+
+  const grid = {};
+  sortedDates.forEach(d => { grid[d] = {}; hours.forEach(h => { grid[d][h] = []; }); });
+  schedule.forEach(s => {
+    const d = s.date || '미정';
+    const h = parseInt((s.time || '00:00').split(':')[0]);
+    if (grid[d] && grid[d][h] !== undefined) grid[d][h].push(s);
   });
-  const days = Object.keys(byDate).sort().map(date => {
-    const n = dayN(date, t.dateRange.start);
-    const rows = byDate[date]
-      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
-      .map(item => `<div class="print-schedule-row">
-        <div class="print-schedule-time">${escH(item.time || '—')}</div>
-        <div>
-          <div class="print-schedule-place">${escH(item.place || '—')}</div>
-          ${item.memo ? `<span class="print-schedule-memo">${escH(item.memo)}</span>` : ''}
-        </div>
-        <div class="print-schedule-meta">${escH([item.category, item.transport].filter(Boolean).join(' · '))}</div>
-      </div>`).join('');
-    return `<section class="print-schedule-day">
-      <div class="print-schedule-day-title">${n ? `Day ${n}` : '일정'} · ${escH(date)}</div>
-      ${rows || '<div class="print-schedule-row">일정 없음</div>'}
-    </section>`;
-  }).join('');
-  return `<section class="print-schedule-section">${printTripHeading()}${days || '<p>등록된 일정이 없습니다.</p>'}</section>`;
+
+  let thead = `<tr><th class="print-tt-time-col">시간</th>`;
+  sortedDates.forEach(d => {
+    const n = dayN(d, t.dateRange.start);
+    thead += `<th class="print-tt-day-col"><div class="print-tt-day-num">${n ? n + '일차' : 'Day'}</div><div class="print-tt-day-date">${dateLabel(d)}</div></th>`;
+  });
+  thead += `</tr>`;
+
+  let tbody = '';
+  hours.forEach(h => {
+    tbody += `<tr><td class="print-tt-time-cell">${String(h).padStart(2, '0')}:00</td>`;
+    sortedDates.forEach(d => {
+      const items = grid[d][h] || [];
+      const cells = items.map(s => {
+        const transTag = s.transport ? `<span class="print-tt-trans">${escH(s.transport)}</span>` : '';
+        return `<div class="print-tt-cell-item cat-${escH(s.category || '기타')}">
+          <span class="print-tt-item-time">${escH(s.time || '')}</span>
+          <span class="print-tt-item-place">${escH(s.place)}</span>${transTag}
+        </div>`;
+      }).join('');
+      tbody += `<td class="print-tt-day-cell">${cells}</td>`;
+    });
+    tbody += `</tr>`;
+  });
+
+  return `<section class="print-schedule-section">
+    ${printTripHeading()}
+    <div class="print-tt-wrap">
+      <table class="print-tt">
+        <thead>${thead}</thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>
+  </section>`;
 }
 
 function renderPrintRouteDay(date) {
