@@ -2228,6 +2228,7 @@ function startConfiguredPrint() {
       ? renderPrintRoutes(routeDates)
       : `${renderPrintSchedule()}${renderPrintRoutes(routeDates)}`;
   closeModal('modal-print');
+  if (!confirm('정말 인쇄하시겠어요?')) return;
   document.body.classList.add('is-printing');
   window.setTimeout(() => window.print(), 80);
 }
